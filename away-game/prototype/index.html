@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Away Game · Routine Rings prototype</title>
+  <meta name="description" content="HCI class project prototype: a wrist-first tool that helps traveling athletes decide how to train, eat, and sleep on the road.">
+  <meta name="theme-color" content="#16233a">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⌚</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip" href="#companion">Skip to companion panel</a>
+
+  <header class="top">
+    <div class="brand">
+      <h1>Away Game</h1>
+      <p class="trip" id="trip-line">Day 1 in Lisbon</p>
+    </div>
+    <div class="net">
+      <span class="net-pill" id="net-pill" role="status">Online</span>
+      <label class="switch">
+        <input type="checkbox" id="sim-offline">
+        <span>Simulate no signal</span>
+      </label>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- The wrist: the one glanceable surface (bootleg #1 Routine Rings) -->
+    <section class="wrist" aria-labelledby="wrist-h">
+      <h2 id="wrist-h" class="visually-hidden">Watch face</h2>
+      <div class="band">
+        <button class="watch" id="watch" aria-describedby="watch-hint">
+          <svg id="watch-svg" viewBox="0 0 300 300" role="img" aria-labelledby="watch-title">
+            <title id="watch-title">Watch face</title>
+          </svg>
+        </button>
+        <button class="crown" id="crown" aria-label="Next watch screen"></button>
+      </div>
+      <p class="watch-hint" id="watch-hint">Tap the face to switch screens: rings, nearest place, sleep.</p>
+
+      <div class="wrist-actions" role="group" aria-label="Log from the wrist">
+        <p class="actions-label">How did training go?</p>
+        <div class="btn-row">
+          <button class="act" data-train="go">Did the session</button>
+          <button class="act" data-train="easy">Took it easy</button>
+          <button class="act" data-train="recovery">Rested</button>
+        </div>
+        <p class="actions-label">Fuel</p>
+        <div class="btn-row">
+          <button class="act eat" id="add-meal">+ Meal</button>
+          <button class="act eat" id="add-water">+ Water</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- The companion: deeper detail, used less often -->
+    <section class="companion" id="companion" aria-label="Companion">
+      <div class="tabs" role="tablist" aria-label="Companion sections">
+        <button role="tab" id="tab-today" aria-controls="panel-today" aria-selected="true">Today</button>
+        <button role="tab" id="tab-places" aria-controls="panel-places" aria-selected="false" tabindex="-1">Places</button>
+        <button role="tab" id="tab-passport" aria-controls="panel-passport" aria-selected="false" tabindex="-1">Passport</button>
+        <button role="tab" id="tab-coach" aria-controls="panel-coach" aria-selected="false" tabindex="-1">Coach</button>
+      </div>
+
+      <!-- TODAY -->
+      <div class="panel" role="tabpanel" id="panel-today" aria-labelledby="tab-today">
+        <div class="verdict-block" id="verdict-block"></div>
+
+        <fieldset class="inputs">
+          <legend>How the trip has gone so far</legend>
+          <label class="field">
+            <span>Sleep last night <output id="o-sleep"></output></span>
+            <input type="range" id="in-sleep" min="2" max="10" step="0.5">
+          </label>
+          <label class="field">
+            <span>Hours of travel <output id="o-travel"></output></span>
+            <input type="range" id="in-travel" min="0" max="30" step="1">
+          </label>
+          <label class="field">
+            <span>Time zones crossed <output id="o-tz"></output></span>
+            <input type="range" id="in-tz" min="0" max="12" step="1">
+          </label>
+          <div class="field seg" role="radiogroup" aria-label="Direction of travel">
+            <span>Direction</span>
+            <label><input type="radio" name="dir" value="east"> East</label>
+            <label><input type="radio" name="dir" value="west"> West</label>
+          </div>
+          <label class="field">
+            <span>Coach's plan for today</span>
+            <select id="in-session"></select>
+          </label>
+        </fieldset>
+
+        <div class="card" id="where-block"></div>
+        <div class="card sleep" id="sleep-block"></div>
+
+        <div class="day-controls">
+          <button class="primary" id="send-summary">Send day summary to coach</button>
+          <button class="ghost" id="next-day">Start next day</button>
+        </div>
+        <p class="note" id="summary-note" role="status"></p>
+      </div>
+
+      <!-- PLACES -->
+      <div class="panel" role="tabpanel" id="panel-places" aria-labelledby="tab-places" hidden>
+        <p class="lede">Verified by athletes who trained here. No star ratings: just the things you'd ask a teammate.</p>
+        <div class="chips" role="group" aria-label="Filter places">
+          <button class="chip" data-filter="need" aria-pressed="true">What today needs</button>
+          <button class="chip" data-filter="train" aria-pressed="false">All training</button>
+          <button class="chip" data-filter="food" aria-pressed="false">Food</button>
+        </div>
+        <ul class="places" id="places-list"></ul>
+      </div>
+
+      <!-- PASSPORT -->
+      <div class="panel" role="tabpanel" id="panel-passport" aria-labelledby="tab-passport" hidden>
+        <div class="passport-head">
+          <div>
+            <p class="big-num" id="streak-num">0</p>
+            <p class="big-label">days in a row following the plan (rest days count)</p>
+          </div>
+          <button class="ghost" id="print-passport">Print paper passport</button>
+        </div>
+        <p class="lede">A stamp for every new place you train. The paper version is your backup when your phone dies.</p>
+        <div class="stamps" id="stamps"></div>
+        <h3 class="sub">Trip log</h3>
+        <ol class="history" id="history"></ol>
+      </div>
+
+      <!-- COACH -->
+      <div class="panel" role="tabpanel" id="panel-coach" aria-labelledby="tab-coach" hidden>
+        <p class="lede">What Coach Reyes sets before the trip, and what she sees during it.</p>
+        <fieldset class="inputs">
+          <legend>Rules set before the trip</legend>
+          <label class="field">
+            <span>Recovery day if sleep is under <output id="o-minsleep"></output></span>
+            <input type="range" id="in-minsleep" min="4" max="8" step="0.5">
+          </label>
+          <label class="field">
+            <span>Easy first days if time zones crossed is at least <output id="o-tzeasy"></output></span>
+            <input type="range" id="in-tzeasy" min="1" max="12" step="1">
+          </label>
+          <label class="check">
+            <input type="checkbox" id="in-key">
+            <span>Today is a key session (don't skip unless very short on sleep)</span>
+          </label>
+        </fieldset>
+
+        <h3 class="sub">Team today</h3>
+        <ul class="team" id="team"></ul>
+        <p class="note" id="queue-note"></p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Printable passport (only visible when printing) -->
+  <section class="print-passport" id="print-passport-sheet" aria-hidden="true"></section>
+
+  <footer class="foot">
+    <p>Prototype for an HCI class project. Design docs (task model, bootlegging, personas) are in <code>/docs</code>. Sample places are fictional.</p>
+    <button class="linkish" id="reset">Reset demo</button>
+  </footer>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

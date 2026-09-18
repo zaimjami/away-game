@@ -1,0 +1,10 @@
+{
+  "name": "Away Game",
+  "short_name": "Away Game",
+  "description": "Routine Rings prototype: train, eat, and sleep well on the road.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#eef2ef",
+  "theme_color": "#16233a",
+  "icons": []
+}
